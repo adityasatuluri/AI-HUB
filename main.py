@@ -1,4 +1,4 @@
-# run command: cd ../env/Scripts && activate && cd../../AIHUB
+# run command: cd ../env/Scripts && activate && cd../../AIHUB && streamlit run main.py
 
 import streamlit as st
 from TempChat.tempchat import tempchat
@@ -27,11 +27,20 @@ def main():
     option = sidebar_layout()
     
     if option == "Temporary Chat":
-        tempchat() 
+        tempchat()
+        st.session_state.sidebar_state = (
+                        "collapsed"
+                    )
     elif option == "Image Generator":
         image_gen()
+        st.session_state.sidebar_state = (
+                        "collapsed" 
+                    )
     elif option == "Ai Web Scraper":
         aiscraper()
+        st.session_state.sidebar_state = (
+                        "collapsed"
+                    )
     else:
       homepage()
 
