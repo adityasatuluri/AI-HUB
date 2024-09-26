@@ -20,7 +20,7 @@ def sidebar_layout():
             """
             <div>
                 <hr>
-                <p style='margin: 0;'>Open for <a style="color:red" href='https://github.com/your_github_username' target='_blank'>Contributions</a></p>
+                <p style='margin: 0;'>Open for <a style="color:red" href='https://github.com/adityasatuluri/AI-HUB' target='_blank'>Contributions</a></p>
                 <p style='margin: 0; color:#919191'>Developed by <a style="color:#b82f23" href='https://github.com/adityasatuluri' target='_blank'>Aditya Satuluri</a></p>
             </div>
             """,
