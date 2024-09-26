@@ -8,11 +8,13 @@ from Scraper.main import aiscraper
 from home import homepage
 from PIL import Image
 
+if "sidebar_state" not in st.session_state:
+        st.session_state.sidebar_state = "collapsed"
+
 im = Image.open("assets/aihubshort.png")
-st.set_page_config(page_title="AI HUB",  page_icon=im, layout="wide")
+st.set_page_config(page_title="AI HUB",  page_icon=im, layout="centered", initial_sidebar_state=st.session_state.sidebar_state)
 
 def main():
-
     hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -31,7 +33,7 @@ def main():
     elif option == "Ai Web Scraper":
         aiscraper()
     else:
-        groq, flux = homepage()
+      homepage()
 
 
 if __name__ == "__main__":

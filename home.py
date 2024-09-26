@@ -1,5 +1,5 @@
 import streamlit as st
-
+import time
 
 def homepage():
     # Initialize session state for storing API keys
@@ -8,20 +8,14 @@ def homepage():
     if 'hf_api_key' not in st.session_state:
         st.session_state['hf_api_key'] = ""
 
-    # Logo at the top
-    # col1, col2, col3 = st.columns([1, 1, 1])
-    # with col2:  
-    #     st.image('assets/AI_HUB.png', width=350)
-
     st.title("Welcome to AI HUB")
     
     with st.expander("Please enter your API keys to start using the AI services.", expanded=True):
-
         groq_api_key = st.text_input("Enter your Groq API Key", type="password", placeholder="Groq API Key", value=st.session_state.groq_api_key)
         url = "https://console.groq.com/keys"
         st.write("Visit [GROQ](%s) to get your API key" % url)
         st.write("_______")
-        # Input for Hugging Face API key
+        
         hf_api_key = st.text_input("Enter your Hugging Face API Key", type="password", placeholder="Hugging Face API Key", value=st.session_state.hf_api_key)
         st.write("Get your own Access Token, refer the below video and enter the token above after acquiring it.")
         st.markdown("""
@@ -42,7 +36,10 @@ def homepage():
                     st.session_state['hf_api_key'] = hf_api_key
                     st.success("Hugging Face API key saved successfully!")
                 st.balloons()
+                time.sleep(2)
+                st.session_state.sidebar_state = (
+                        "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
+                    )
+                st.rerun()
             if not (groq_api_key or hf_api_key):
                 st.error("Please fill in any one of the API keys.")
-        
-        return st.session_state['groq_api_key'], st.session_state['hf_api_key']
