@@ -10,3 +10,5 @@ selenium
 beautifulsoup4
 lxml 
 html5lib
+PIL
+streamlit_option_menu

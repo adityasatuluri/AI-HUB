@@ -90,7 +90,7 @@ def aiscraper():
                     #st.write(''.join(result))
                     st.text_area("Result", ''.join(result), height=500)
     else:
-        st.error("Oops🤭! Looks like you forgot to enter the flux API. Redirecting you to the api section...")
+        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
         time.sleep(3)
         homepage()
 

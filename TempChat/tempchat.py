@@ -99,6 +99,6 @@ def tempchat():
             else:
                 st.write("No chat history yet. Ask something!")
     else:
-        st.error("Oops🤭! Looks like you forgot to enter the flux API. Redirecting you to the api section...")
+        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
         time.sleep(3)
         homepage()

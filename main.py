@@ -1,3 +1,5 @@
+# run command: cd ../env/Scripts && activate && cd../../AIHUB
+
 import streamlit as st
 from TempChat.tempchat import tempchat
 from layout import sidebar_layout
@@ -11,14 +13,14 @@ st.set_page_config(page_title="AI HUB",  page_icon=im, layout="wide")
 
 def main():
 
-    hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
-    st.markdown(hide_st_style, unsafe_allow_html=True)
+    # hide_st_style = """
+    #         <style>
+    #         #MainMenu {visibility: hidden;}
+    #         footer {visibility: hidden;}
+    #         header {visibility: hidden;}
+    #         </style>
+    #         """
+    # st.markdown(hide_st_style, unsafe_allow_html=True)
 
     option = sidebar_layout()
     
