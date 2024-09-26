@@ -31,6 +31,7 @@ def main():
         st.session_state.sidebar_state = (
                         "collapsed"
                     )
+        st.rerun()
     elif option == "Image Generator":
         image_gen()
         st.session_state.sidebar_state = (
