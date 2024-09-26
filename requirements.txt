@@ -10,5 +10,5 @@ selenium
 beautifulsoup4
 lxml 
 html5lib
-PIL
+pillow
 streamlit_option_menu
