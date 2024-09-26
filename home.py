@@ -34,14 +34,15 @@ def homepage():
         
         # Save the keys into session state when the user clicks Submit
         if st.button("Submit"):
-            if groq_api_key:
-                st.session_state['groq_api_key'] = groq_api_key
-                st.success("Groq API key saved successfully!")
-            if hf_api_key:
-                st.session_state['hf_api_key'] = hf_api_key
-                st.success("Hugging Face API key saved successfully!")
+            if groq_api_key or hf_api_key:
+                if groq_api_key:
+                    st.session_state['groq_api_key'] = groq_api_key
+                    st.success("Groq API key saved successfully!")
+                if hf_api_key:
+                    st.session_state['hf_api_key'] = hf_api_key
+                    st.success("Hugging Face API key saved successfully!")
+                st.balloons()
             if not (groq_api_key or hf_api_key):
                 st.error("Please fill in any one of the API keys.")
-            st.balloons()
         
         return st.session_state['groq_api_key'], st.session_state['hf_api_key']
