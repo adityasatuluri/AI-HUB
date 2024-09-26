@@ -1,0 +1,12 @@
+streamlit
+groq
+requests
+better_profanity
+pymongo
+python-dotenv
+langchain 
+langchain_ollama
+selenium
+beautifulsoup4
+lxml 
+html5lib
