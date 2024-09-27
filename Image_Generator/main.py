@@ -10,6 +10,7 @@ import pymongo
 from dotenv import load_dotenv
 from better_profanity import profanity
 from home import homepage
+import base64
 
 # Load environment variables
 load_dotenv()

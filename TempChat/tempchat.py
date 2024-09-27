@@ -3,8 +3,11 @@ from groq import Groq
 import datetime
 import time
 from home import homepage
-import pandas as pd
-import openpyxl
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from io import BytesIO
 
 def tempchat():
     # Title and description
@@ -19,7 +22,7 @@ def tempchat():
         st.session_state['user_prompt'] = ""
 
     # If valid Groq API key is present
-    if st.session_state.groq_api_key:
+    if st.session_state.get('groq_api_key'):
         with st.container(border=True):
 
             # Input field for the prompt
@@ -90,7 +93,7 @@ def tempchat():
                 st.markdown(f"<div style='background-color: #1a1a1a; padding: 15px; border-radius: 10px; color: white;'>{st.session_state['latest_result']}</div>", unsafe_allow_html=True)
 
         # Create a chat container
-        with st.expander("Chat History", expanded = False):
+        with st.expander("Chat History", expanded=False):
             if st.session_state['chat_history']:
                 for question, answer, timestamp in st.session_state['chat_history']:
                     with st.container():
@@ -102,41 +105,57 @@ def tempchat():
                 st.write("No chat history yet. Ask something!")
 
         if st.session_state['chat_history']:
-            if st.button("Download Chat History"):
-                # Convert chat history to DataFrame
-                df = pd.DataFrame(st.session_state['chat_history'], columns=['Question', 'Answer', 'Timestamp'])
+            if st.button("Download Chat History as PDF"):
+                # Create a BytesIO object to store the PDF
+                buffer = BytesIO()
+
+                # Create the PDF document
+                doc = SimpleDocTemplate(buffer, pagesize=letter)
+                styles = getSampleStyleSheet()
                 
-                # Style the DataFrame
-                styled_df = df.style.set_properties(**{
-                    'background-color': '#f4f4f4',
-                    'color': 'black',
-                    'border-color': 'white'
-                })
-                
-                # Apply alternating row colors
-                styled_df = styled_df.apply(lambda x: ['background-color: #e6e6e6' if i % 2 == 0 else '' for i in range(len(x))], axis=0)
-                
-                # Set column widths
-                styled_df = styled_df.set_table_styles([
-                    {'selector': 'th', 'props': [('background-color', '#4CAF50'), ('color', 'white'), ('font-weight', 'bold')]},
-                    {'selector': 'td', 'props': [('padding', '10px')]},
-                    {'selector': 'th:nth-child(1)', 'props': [('width', '30%')]},
-                    {'selector': 'th:nth-child(2)', 'props': [('width', '50%')]},
-                    {'selector': 'th:nth-child(3)', 'props': [('width', '20%')]},
-                ])
-                
-                # Convert styled DataFrame to Excel
-                output = styled_df.to_excel('chat_history.xlsx', engine='openpyxl', index=False)
-                
-                # Offer the file for download
-                with open('chat_history.xlsx', 'rb') as f:
-                    st.download_button(
-                        label="Download Chat History as Excel",
-                        data=f,
-                        file_name="chat_history.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
+                # Create custom styles for prompt and answer
+                styles.add(ParagraphStyle(name='Prompt', alignment=0, fontName='Helvetica', fontSize=10))
+                styles.add(ParagraphStyle(name='Answer', alignment=2, fontName='Helvetica', fontSize=10))
+                styles.add(ParagraphStyle(name='Timestamp', alignment=1, fontName='Helvetica', fontSize=8, textColor=colors.gray))
+
+                # Create the story (content) for the PDF
+                story = []
+
+                for question, answer, timestamp in reversed(st.session_state['chat_history']):
+                    # Add timestamp
+                    story.append(Paragraph(timestamp, styles['Timestamp']))
+                    story.append(Spacer(1, 12))
+                    
+                    # Add prompt (left-aligned)
+                    story.append(Paragraph(f"Prompt: {question}", styles['Prompt']))
+                    story.append(Spacer(1, 12))
+                    
+                    # Add answer (right-aligned)
+                    story.append(Paragraph(f"Answer: {answer}", styles['Answer']))
+                    story.append(Spacer(1, 12))
+                    
+                    # Add a horizontal line
+                    story.append(HRFlowable(width="100%", thickness=1, color=colors.gray, spaceAfter=20))
+
+                # Build the PDF
+                doc.build(story)
+
+                # Move the buffer's cursor to the beginning of the stream
+                buffer.seek(0)
+
+                # Automatically trigger the download
+                st.download_button(
+                    label="Download Chat History as PDF",
+                    data=buffer.getvalue(),
+                    file_name="chat_history.pdf",
+                    mime="application/pdf",
+                    key="download_pdf"
+                )
     else:
-        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
+        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the API section...")
         time.sleep(3)
         homepage()
+
+# Call the tempchat function to run the app
+if __name__ == "__main__":
+    tempchat()
