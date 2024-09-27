@@ -7,6 +7,7 @@ python-dotenv
 langchain 
 langchain_ollama
 selenium
+webdriver-manager
 beautifulsoup4
 lxml 
 html5lib

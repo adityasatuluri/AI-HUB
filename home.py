@@ -57,6 +57,6 @@ def homepage():
                 st.session_state.sidebar_state = (
                         "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
                     )
-                st.rerun()
+                #st.rerun()
             else:
                 st.error("Please fill in any one of the API keys.")

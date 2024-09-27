@@ -19,22 +19,27 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client['AIGENFLUX']
 collection = db.Prompts
 
-def insert_prompt(prompt):
-    try:
-        document = {
-            "prompt": prompt,
-            "created_at": db.command("serverStatus")["localTime"]
-        }
-        collection.insert_one(document)
-        print(f"Prompt '{prompt}' has been inserted into the database.")
-    except Exception as e:
-        print(f"An error occurred while inserting the prompt: {e}")
-
-def profane(prompt_str):
-    censored_prompt = profanity.censor(prompt_str)
-    return censored_prompt, censored_prompt == prompt_str
 
 def image_gen():
+
+    def insert_prompt(prompt):
+        try:
+            document = {
+                "prompt": prompt,
+                "created_at": db.command("serverStatus")["localTime"]
+            }
+            collection.insert_one(document)
+            print(f"Prompt '{prompt}' has been inserted into the database.")
+        except Exception as e:
+            print(f"An error occurred while inserting the prompt: {e}")
+
+    def profane(prompt_str):
+        censored_prompt = profanity.censor(prompt_str)
+        return censored_prompt, censored_prompt == prompt_str
+
+    if 'response' not in st.session_state:
+        st.session_state['response'] = ""
+
     if st.session_state.hf_api_key:
         # Hide Streamlit menu
         hide_st_style = """
@@ -80,7 +85,7 @@ def image_gen():
         st.markdown("<i>Made with</i> <b>FLUX</b>: <i>An advanced AI model for generating high-quality images from detailed text prompts. It uses sophisticated algorithms to produce intricate and visually stunning images.</i>", unsafe_allow_html=True)
 
         with st.expander("Image Generation", expanded=True):
-            headers = {"Authorization": f"Bearer {st.session_state.groq_api_key}"}
+            headers = {"Authorization": f"Bearer {st.session_state.hf_api_key}"}
             API_URL = "https://api-inference.huggingface.co/models/XLabs-AI/flux-RealismLora"
 
             input_prompt = st.text_input("Image prompt:", help="Enter the text prompt for image generation.")
@@ -104,9 +109,11 @@ def image_gen():
 
                     def query(payload):
                         response = requests.post(API_URL, headers=headers, json=payload)
+                        print(payload, API_URL, headers)
+                        print(response)
                         return response
 
-                    response = query({
+                    st.session_state.response = response = query({
                         "inputs": input_prompt2,
                         "steps": steps,
                         "seed": seed,
@@ -118,9 +125,9 @@ def image_gen():
                         "upscale": "yes"
                     })
 
-                    if response.ok and 'image' in response.headers.get('Content-Type', ''):
+                    if st.session_state.response.ok and 'image' in st.session_state.response.headers.get('Content-Type', ''):
                         try:
-                            image_bytes = response.content
+                            image_bytes = st.session_state.response.content
                             image = Image.open(io.BytesIO(image_bytes))
                             st.image(image, caption="Generated Image", use_column_width=True)
 

@@ -1,18 +1,19 @@
-import selenium.webdriver as webdriver
+from selenium import webdriver
 from selenium.webdriver.edge.service import Service
+from selenium.webdriver.edge.options import Options
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from bs4 import BeautifulSoup
 
 def scrape_website(website):
     print("Launching Edge Browser...")
 
-    edge_driver_path = "edgedriver_win64/msedgedriver.exe"
-    options = webdriver.EdgeOptions()
-    options.add_argument('--headless')  # Run in headless mode (no browser UI)
-    options.add_argument('--disable-gpu')  # Disable GPU hardware acceleration
-    options.add_argument('--no-sandbox')  # Bypass OS security model
-    options.add_argument('--disable-dev-shm-usage')  # Overcome limited resource problems
+    edge_options = Options()
+    edge_options.add_argument('--headless')  # Run in headless mode (no browser UI)
+    edge_options.add_argument('--disable-gpu')  # Disable GPU hardware acceleration
+    edge_options.add_argument('--no-sandbox')  # Bypass OS security model
+    edge_options.add_argument('--disable-dev-shm-usage')  # Overcome limited resource problems
     
-    driver = webdriver.Edge(service=Service(edge_driver_path), options=options)
+    driver = webdriver.Edge(service=Service(EdgeChromiumDriverManager().install()), options=edge_options)
 
     try:
         driver.get(website)
