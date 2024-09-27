@@ -16,3 +16,4 @@ html5lib
 pillow
 streamlit_option_menu
 streamlit_cookies_manager
+split_dom_content
