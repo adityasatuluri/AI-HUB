@@ -8,7 +8,9 @@ langchain
 langchain_ollama
 selenium
 webdriver-manager
+webdriver_manager
 beautifulsoup4
+requests
 lxml 
 html5lib
 pillow
