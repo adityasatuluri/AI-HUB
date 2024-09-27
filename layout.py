@@ -24,4 +24,5 @@ def sidebar_layout():
             unsafe_allow_html=True
         )
 
+
     return option

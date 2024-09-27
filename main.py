@@ -11,6 +11,7 @@ from PIL import Image
 if "sidebar_state" not in st.session_state:
         st.session_state.sidebar_state = "collapsed"
 
+
 im = Image.open("assets/aihubshort.png")
 st.set_page_config(page_title="AI HUB",  page_icon=im, layout="centered", initial_sidebar_state=st.session_state.sidebar_state)
 
@@ -28,19 +29,10 @@ def main():
     
     if option == "Temporary Chat":
         tempchat()
-        st.session_state.sidebar_state = (
-                        "collapsed"
-                    )
     elif option == "Image Generator":
         image_gen()
-        st.session_state.sidebar_state = (
-                        "collapsed" 
-                    )
     elif option == "Ai Web Scraper":
         aiscraper()
-        st.session_state.sidebar_state = (
-                        "collapsed"
-                    )
     else:
       homepage()
 

@@ -1,12 +1,24 @@
+import os
 import streamlit as st
+from streamlit_cookies_manager import EncryptedCookieManager
 import time
+
+# Initialize the EncryptedCookieManager
+cookies = EncryptedCookieManager(
+    prefix="ktosiek/streamlit-cookies-manager/",
+    password=os.environ.get("COOKIES_PASSWORD", "My secret password")
+)
+
+# Ensure the cookie manager is ready
+if not cookies.ready():
+    st.stop()
 
 def homepage():
     # Initialize session state for storing API keys
     if 'groq_api_key' not in st.session_state:
-        st.session_state['groq_api_key'] = ""
+        st.session_state['groq_api_key'] = cookies.get('groq_api_key', "")
     if 'hf_api_key' not in st.session_state:
-        st.session_state['hf_api_key'] = ""
+        st.session_state['hf_api_key'] = cookies.get('hf_api_key', "")
 
     st.title("Welcome to AI HUB")
     
@@ -26,20 +38,25 @@ def homepage():
             </div><br>
         """, unsafe_allow_html=True)
         
-        # Save the keys into session state when the user clicks Submit
+        # Save the keys into session state and cookies when the user clicks Submit
         if st.button("Submit"):
             if groq_api_key or hf_api_key:
                 if groq_api_key:
                     st.session_state['groq_api_key'] = groq_api_key
+                    cookies['groq_api_key'] = groq_api_key  # Store in cookies
                     st.success("Groq API key saved successfully!")
                 if hf_api_key:
                     st.session_state['hf_api_key'] = hf_api_key
+                    cookies['hf_api_key'] = hf_api_key  # Store in cookies
                     st.success("Hugging Face API key saved successfully!")
+                # Save the cookies
+                cookies.save()
+
                 st.balloons()
                 time.sleep(2)
                 st.session_state.sidebar_state = (
                         "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
                     )
                 st.rerun()
-            if not (groq_api_key or hf_api_key):
+            else:
                 st.error("Please fill in any one of the API keys.")
