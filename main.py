@@ -15,7 +15,7 @@ if "sidebar_state" not in st.session_state:
 
 
 im = Image.open("assets/aihubshort.png")
-st.set_page_config(page_title="AI HUB",  page_icon=im, layout="wide", initial_sidebar_state=st.session_state.sidebar_state)
+st.set_page_config(page_title="Cluster Gen",  page_icon=im, layout="wide", initial_sidebar_state=st.session_state.sidebar_state)
 
 def main():
     hide_st_style = """
