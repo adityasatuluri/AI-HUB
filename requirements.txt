@@ -17,6 +17,3 @@ pillow
 streamlit_option_menu
 streamlit_cookies_manager
 reportlab
-streamlit_audio_recorder
-numpy
-soundfile
