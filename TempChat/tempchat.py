@@ -3,6 +3,7 @@ from groq import Groq
 import datetime
 import time
 from home import homepage
+import pandas as pd
 
 def tempchat():
     # Title and description
@@ -98,6 +99,42 @@ def tempchat():
                         st.markdown(f"<div style='text-align: left; background-color: #000000; padding: 10px; border-radius: 5px;'>{answer}</div>", unsafe_allow_html=True)
             else:
                 st.write("No chat history yet. Ask something!")
+
+        if st.session_state['chat_history']:
+            if st.button("Download Chat History"):
+                # Convert chat history to DataFrame
+                df = pd.DataFrame(st.session_state['chat_history'], columns=['Question', 'Answer', 'Timestamp'])
+                
+                # Style the DataFrame
+                styled_df = df.style.set_properties(**{
+                    'background-color': '#f4f4f4',
+                    'color': 'black',
+                    'border-color': 'white'
+                })
+                
+                # Apply alternating row colors
+                styled_df = styled_df.apply(lambda x: ['background-color: #e6e6e6' if i % 2 == 0 else '' for i in range(len(x))], axis=0)
+                
+                # Set column widths
+                styled_df = styled_df.set_table_styles([
+                    {'selector': 'th', 'props': [('background-color', '#4CAF50'), ('color', 'white'), ('font-weight', 'bold')]},
+                    {'selector': 'td', 'props': [('padding', '10px')]},
+                    {'selector': 'th:nth-child(1)', 'props': [('width', '30%')]},
+                    {'selector': 'th:nth-child(2)', 'props': [('width', '50%')]},
+                    {'selector': 'th:nth-child(3)', 'props': [('width', '20%')]},
+                ])
+                
+                # Convert styled DataFrame to Excel
+                output = styled_df.to_excel('chat_history.xlsx', engine='openpyxl', index=False)
+                
+                # Offer the file for download
+                with open('chat_history.xlsx', 'rb') as f:
+                    st.download_button(
+                        label="Download Chat History as Excel",
+                        data=f,
+                        file_name="chat_history.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
     else:
         st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
         time.sleep(3)
