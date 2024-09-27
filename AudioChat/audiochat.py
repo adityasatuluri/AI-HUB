@@ -3,9 +3,6 @@ import streamlit as st
 from groq import Groq
 import datetime
 import time
-import io
-#from streamlit_audio_recorder import audio_recorder
-from st_audiorec import st_audiorec
 from home import homepage
 
 def audiochat():
@@ -14,96 +11,49 @@ def audiochat():
 
     # Initialize session state variables
     if 'audio_history2' not in st.session_state:
-        st.session_state['audio_history2'] = []
+        st.session_state['audio_history'] = []
     if 'chat_history2' not in st.session_state:
-        st.session_state['chat_history2'] = []
+        st.session_state['chat_history'] = []
     if 'latest_result2' not in st.session_state:
-        st.session_state['latest_result2'] = None
+        st.session_state['latest_result'] = None
     if 'user_prompt2' not in st.session_state:
-        st.session_state['user_prompt2'] = "Give the results based on the audio information given."
+        st.session_state['user_prompt'] = ""
 
     # If valid Groq API key is present
     if st.session_state.groq_api_key:
         with st.container(border=True):
-            # Input field for the audio file
-             # Option for user to select between recording or uploading audio
-            option = st.radio("Choose an option", ("Record Audio", "Upload Audio"))
 
-            user_audio = None
-            if option == "Record Audio":
-                # Use st_audiorec to record audio
-                user_audio = st_audiorec()
-                # if user_audio is not None:
-                #     st.audio(user_audio, format='audio/wav')
-            
-            elif option == "Upload Audio":
-                # File uploader for audio files
-                user_audio = st.file_uploader("Upload an audio file", type=["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"])
-                # if uploaded_audio is not None:
-                #     user_audio = uploaded_audio.read()
-                #     st.audio(uploaded_audio, format=uploaded_audio.type)
-            
+            # Input field for the prompt
+            # user_prompt = st.text_area(
+            #     "Enter the text to concatenate with the prompt:",
+            #     value=st.session_state['user_prompt'],
+            #     placeholder="Your text here..."
+            # )
+            # Input field for the audio file
+            user_audio=st.file_uploader("Upload an audio file", type=["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"])
+
             # Update session state with the current user audio
             st.session_state['user_audio'] = user_audio
-            # Input field for the prompt
-            user_prompt2= st.text_area(
-                "Enter the text to concatenate with the prompt:",
-                value=st.session_state['user_prompt2'],
-                placeholder="Your text here..."
-            )
+            
             def parse_whisper_groq(user_audio):
                 client = Groq(api_key=st.session_state.groq_api_key)  # Using the API key from session state
+                filename = user_audio.name
                 
-                # Convert the audio bytes into a file-like object if recorded via st_audiorec
-                if isinstance(user_audio, bytes):
-                    audio_file = io.BytesIO(user_audio)
-                    filename = "recorded_audio.wav"
-                else:
-                    audio_file = io.BytesIO(user_audio.read())
-                    filename = "uploaded_audio." + user_audio.name.split('.')[-1]
-                
-                # Check the size of the audio content and ensure it's within 25MB limit
-                audio_file.seek(0, io.SEEK_END)  # Go to the end of the file to check the size
-                if audio_file.tell() > 25 * 1024 * 1024:
+                # Read the file content and ensure it's within 25MB limit
+                audio_content = user_audio.read()
+                if len(audio_content) > 25 * 1024 * 1024:
                     st.error("File size exceeds 25MB limit.")
                     return None
-                audio_file.seek(0)  # Reset the pointer to the start of the file
-                
+
                 # Call the Groq API to transcribe the audio
                 transcription = client.audio.transcriptions.create(
-                    file=(filename, audio_file.read()),  # Read the content of the file
+                    file=(filename, audio_content),
                     model="distil-whisper-large-v3-en",
                     response_format="verbose_json",
                 )
-
+                
                 # Return the transcribed text
                 return transcription.text
-            # user_audio=st.file_uploader("Upload an audio file", type=["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"])
-            # user_audio=st_audiorec()
-            # if user_audio is not None:
-            #     st.audio(user_audio, format='audio/wav')
-            # # Update session state with the current user audio
-            # st.session_state['user_audio'] = user_audio
-            
-            # def parse_whisper_groq(user_audio):
-            #     client = Groq(api_key=st.session_state.groq_api_key)  # Using the API key from session state
-            #     filename = user_audio.name
-                
-            #     # Read the file content and ensure it's within 25MB limit
-            #     audio_content = user_audio.read()
-            #     if len(audio_content) > 25 * 1024 * 1024:
-            #         st.error("File size exceeds 25MB limit.")
-            #         return None
-
-            #     # Call the Groq API to transcribe the audio
-            #     transcription = client.audio.transcriptions.create(
-            #         file=(filename, audio_content),
-            #         model="distil-whisper-large-v3-en",
-            #         response_format="verbose_json",
-            #     )
-                
-            #     # Return the transcribed text
-            #     return transcription.text
 
             # Function to call Groq API
             def parse_llama_groq(user_input):
@@ -132,47 +82,46 @@ def audiochat():
                         try:
                             # Call the function to get the response
                             #Input the parsed text from user audio into the user_text
-                            user_prompt2+="***The information from audio follows :*** "
-                            user_prompt2+=parse_whisper_groq(user_audio)
+                            user_prompt=parse_whisper_groq(user_audio)
                             # Update session state with the current user prompt
-                            st.session_state['user_prompt2'] = user_prompt2
+                            st.session_state['user_prompt'] = user_prompt
 
-                            response = parse_llama_groq(user_prompt2)
+                            response = parse_llama_groq(user_prompt)
 
                             # Update the latest result
-                            st.session_state['latest_result2'] = response
+                            st.session_state['latest_result'] = response
 
                             # Check if the prompt already exists in the chat history
                             found = False
-                            for i, (question, _, _) in enumerate(st.session_state['chat_history2']):
+                            for i, (question, _, _) in enumerate(st.session_state['chat_history']):
                                 if question == user_prompt:
-                                    st.session_state['chat_history2'][i] = (user_prompt, response, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                                    st.session_state['chat_history'][i] = (user_prompt, response, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                                     found = True
                                     break
                             
                             # If the prompt is new, insert it into the chat history
                             if not found:
                                 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                st.session_state['chat_history2'].insert(0, (user_prompt2, response, timestamp))
+                                st.session_state['chat_history'].insert(0, (user_prompt, response, timestamp))
 
                         except Exception as e:
                             st.error(f"An error occurred: {str(e)}")
 
             with col2:
                 if st.button("Clear"):
-                    st.session_state['latest_result2'] = None  # Clear the latest result
-                    st.session_state['user_prompt2'] = ""  # Clear the user prompt
+                    st.session_state['latest_result'] = None  # Clear the latest result
+                    st.session_state['user_prompt'] = ""  # Clear the user prompt
                     st.rerun()  # Rerun the app to reflect changes
 
             # Display the latest result if available
             st.write("### Latest Result")
-            if st.session_state['latest_result2']:
-                st.markdown(f"<div style='background-color: #1a1a1a; padding: 15px; border-radius: 10px; color: white;'>{st.session_state['latest_result2']}</div>", unsafe_allow_html=True)
+            if st.session_state['latest_result']:
+                st.markdown(f"<div style='background-color: #1a1a1a; padding: 15px; border-radius: 10px; color: white;'>{st.session_state['latest_result']}</div>", unsafe_allow_html=True)
 
         # Create a chat container
         with st.expander("Chat History", expanded = False):
-            if st.session_state['chat_history2']:
-                for question, answer, timestamp in st.session_state['chat_history2']:
+            if st.session_state['chat_history']:
+                for question, answer, timestamp in st.session_state['chat_history']:
                     with st.container():
                         st.write(f"**Question (at {timestamp})**")
                         st.markdown(f"<div style='text-align: right; background-color: #000000; padding: 10px; border-radius: 5px;'>{question}</div>", unsafe_allow_html=True)
