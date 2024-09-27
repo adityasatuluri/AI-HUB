@@ -18,14 +18,14 @@ im = Image.open("assets/aihubshort.png")
 st.set_page_config(page_title="AI HUB",  page_icon=im, layout="wide", initial_sidebar_state=st.session_state.sidebar_state)
 
 def main():
-    # hide_st_style = """
-    #         <style>
-    #         #MainMenu {visibility: hidden;}
-    #         footer {visibility: hidden;}
-    #         header {visibility: hidden;}
-    #         </style>
-    #         """
-    # st.markdown(hide_st_style, unsafe_allow_html=True)
+    hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_st_style, unsafe_allow_html=True)
 
     #styles:
     red_dark()
