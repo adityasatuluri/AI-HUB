@@ -17,3 +17,4 @@ pillow
 streamlit_option_menu
 streamlit_cookies_manager
 reportlab
+st_audiorec
