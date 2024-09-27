@@ -7,24 +7,28 @@ from Image_Generator.main import image_gen
 from Scraper.main import aiscraper
 from home import homepage
 from PIL import Image
+from themes import red_dark
 
 if "sidebar_state" not in st.session_state:
         st.session_state.sidebar_state = "collapsed"
 
 
 im = Image.open("assets/aihubshort.png")
-st.set_page_config(page_title="AI HUB",  page_icon=im, layout="centered", initial_sidebar_state=st.session_state.sidebar_state)
+st.set_page_config(page_title="AI HUB",  page_icon=im, layout="wide", initial_sidebar_state=st.session_state.sidebar_state)
 
 def main():
-    hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
-    st.markdown(hide_st_style, unsafe_allow_html=True)
+    # hide_st_style = """
+    #         <style>
+    #         #MainMenu {visibility: hidden;}
+    #         footer {visibility: hidden;}
+    #         header {visibility: hidden;}
+    #         </style>
+    #         """
+    # st.markdown(hide_st_style, unsafe_allow_html=True)
 
+    #styles:
+    red_dark()
+    
     option = sidebar_layout()
     
     if option == "Temporary Chat":
