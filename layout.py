@@ -7,7 +7,7 @@ def sidebar_layout():
         with col2:  
             st.sidebar.image('assets/AI_HUB.svg')
         option = option_menu(
-            options=["Home", "Image Generator", "Ai Web Scraper", "Temporary Chat", "Audio Chat"],
+            options=["Home", "Image Generator", "Ai Web Scraper", "Temporary Chat"],
             default_index=0,
             menu_title=None,
             styles={"nav-link-selected": {"background-color": "#F8331D"}}
