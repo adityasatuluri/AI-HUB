@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 def scrape_website(website):
     print("Launching Edge Browser...")
 
-    edge_driver_path = "edgedriver_win64/msedgedriver.exe"
+    edge_driver_path = "/msedgedriver.exe"
     options = webdriver.EdgeOptions()
     options.add_argument('--headless')  # Run in headless mode (no browser UI)
     options.add_argument('--disable-gpu')  # Disable GPU hardware acceleration
