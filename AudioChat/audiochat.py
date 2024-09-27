@@ -1,3 +1,4 @@
+# cd ../aihub/Scripts && activate && cd ../../ai-hub && streamlit run main.py 
 import streamlit as st
 from groq import Groq
 import datetime
@@ -6,14 +7,16 @@ from home import homepage
 
 def audiochat():
     # Title and description
-    st.title("Temp Chat")
+    st.title("Audio Chat")
 
     # Initialize session state variables
-    if 'chat_history' not in st.session_state:
+    if 'audio_history2' not in st.session_state:
+        st.session_state['audio_history'] = []
+    if 'chat_history2' not in st.session_state:
         st.session_state['chat_history'] = []
-    if 'latest_result' not in st.session_state:
+    if 'latest_result2' not in st.session_state:
         st.session_state['latest_result'] = None
-    if 'user_prompt' not in st.session_state:
+    if 'user_prompt2' not in st.session_state:
         st.session_state['user_prompt'] = ""
 
     # If valid Groq API key is present
@@ -21,14 +24,36 @@ def audiochat():
         with st.container(border=True):
 
             # Input field for the prompt
-            user_prompt = st.text_area(
-                "Enter the text to concatenate with the prompt:",
-                value=st.session_state['user_prompt'],
-                placeholder="Your text here..."
-            )
+            # user_prompt = st.text_area(
+            #     "Enter the text to concatenate with the prompt:",
+            #     value=st.session_state['user_prompt'],
+            #     placeholder="Your text here..."
+            # )
+            # Input field for the audio file
+            user_audio=st.file_uploader("Upload an audio file", type=["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"])
 
-            # Update session state with the current user prompt
-            st.session_state['user_prompt'] = user_prompt
+            # Update session state with the current user audio
+            st.session_state['user_audio'] = user_audio
+            
+            def parse_whisper_groq(user_audio):
+                client = Groq(api_key=st.session_state.groq_api_key)  # Using the API key from session state
+                filename = user_audio.name
+                
+                # Read the file content and ensure it's within 25MB limit
+                audio_content = user_audio.read()
+                if len(audio_content) > 25 * 1024 * 1024:
+                    st.error("File size exceeds 25MB limit.")
+                    return None
+
+                # Call the Groq API to transcribe the audio
+                transcription = client.audio.transcriptions.create(
+                    file=(filename, audio_content),
+                    model="distil-whisper-large-v3-en",
+                    response_format="verbose_json",
+                )
+                
+                # Return the transcribed text
+                return transcription.text
 
             # Function to call Groq API
             def parse_llama_groq(user_input):
@@ -50,11 +75,17 @@ def audiochat():
 
             with col1:
                 if st.button("Generate Answer"):
-                    if not user_prompt:
-                        st.warning("Please enter both the prompt and your Groq API key.")
+
+                    if not user_audio:
+                        st.warning("Please enter both the audio and your Groq API key.")
                     else:
                         try:
                             # Call the function to get the response
+                            #Input the parsed text from user audio into the user_text
+                            user_prompt=parse_whisper_groq(user_audio)
+                            # Update session state with the current user prompt
+                            st.session_state['user_prompt'] = user_prompt
+
                             response = parse_llama_groq(user_prompt)
 
                             # Update the latest result
