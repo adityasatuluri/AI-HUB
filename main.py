@@ -1,6 +1,7 @@
 # run command: cd ../env/Scripts && activate && cd../../AIHUB && streamlit run main.py
 
 import streamlit as st
+from AudioChat.audiochat import audiochat
 from TempChat.tempchat import tempchat
 from layout import sidebar_layout
 from Image_Generator.main import image_gen
@@ -37,6 +38,8 @@ def main():
         image_gen()
     elif option == "Ai Web Scraper":
         aiscraper()
+    elif option == "Audio Chat":
+        audiochat()
     else:
       homepage()
 
