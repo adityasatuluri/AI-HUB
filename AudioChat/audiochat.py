@@ -6,6 +6,7 @@ import time
 from home import homepage
 
 def audiochat():
+    st.write("hi")
     # Title and description
     st.title("Audio Chat")
 
