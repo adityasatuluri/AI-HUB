@@ -2,14 +2,23 @@ import streamlit as st
 from groq import Groq
 import datetime
 import time
-from Home import homepage
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
+from PIL import Image
+from themes import red_dark
+from layout import sidebar_layout
+from streamlit.errors import StreamlitAPIException
 
-def tempchat():
+try:
+    im = Image.open("assets/aihubshort.png")
+    st.set_page_config(page_title="TempChat - Cluster Gen",  page_icon=im, layout="wide")
+
+    red_dark()
+    sidebar_layout()
+
     # Title and description
     st.title("Temp Chat")
 
@@ -154,8 +163,7 @@ def tempchat():
     else:
         st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the API section...")
         time.sleep(3)
-        homepage()
 
-# Call the tempchat function to run the app
-if __name__ == "__main__":
-    tempchat()
+except StreamlitAPIException:
+    print("Exception: StreamAPIException at Temp Chat Handled")
+    st.rerun()

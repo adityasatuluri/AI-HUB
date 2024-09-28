@@ -1,39 +1,71 @@
+# cd ../aihub/Scripts && activate && cd ../../ai-hub && streamlit run main.py 
 import streamlit as st
 from groq import Groq
 import datetime
 import time
-from Home import homepage
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from io import BytesIO
+from themes import red_dark
+from layout import sidebar_layout
+from PIL import Image
+from streamlit.errors import StreamlitAPIException
 
-def tempchat():
+
+
+try:
+    im = Image.open("assets/aihubshort.png")
+    st.set_page_config(page_title="Audio Chat - Cluster Gen",  page_icon=im, layout="wide")
+
+    red_dark()
+    sidebar_layout()
+
+
     # Title and description
-    st.title("Temp Chat")
+    st.title("Audio Chat")
 
     # Initialize session state variables
-    if 'chat_history' not in st.session_state:
+    if 'audio_history2' not in st.session_state:
+        st.session_state['audio_history'] = []
+    if 'chat_history2' not in st.session_state:
         st.session_state['chat_history'] = []
-    if 'latest_result' not in st.session_state:
+    if 'latest_result2' not in st.session_state:
         st.session_state['latest_result'] = None
-    if 'user_prompt' not in st.session_state:
+    if 'user_prompt2' not in st.session_state:
         st.session_state['user_prompt'] = ""
 
     # If valid Groq API key is present
-    if st.session_state.get('groq_api_key'):
+    if st.session_state.groq_api_key:
         with st.container(border=True):
 
             # Input field for the prompt
-            user_prompt = st.text_area(
-                "Enter the text to concatenate with the prompt:",
-                value=st.session_state['user_prompt'],
-                placeholder="Your text here..."
-            )
+            # user_prompt = st.text_area(
+            #     "Enter the text to concatenate with the prompt:",
+            #     value=st.session_state['user_prompt'],
+            #     placeholder="Your text here..."
+            # )
+            # Input field for the audio file
+            user_audio=st.file_uploader("Upload an audio file", type=["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"])
 
-            # Update session state with the current user prompt
-            st.session_state['user_prompt'] = user_prompt
+            # Update session state with the current user audio
+            st.session_state['user_audio'] = user_audio
+            
+            def parse_whisper_groq(user_audio):
+                client = Groq(api_key=st.session_state.groq_api_key)  # Using the API key from session state
+                filename = user_audio.name
+                
+                # Read the file content and ensure it's within 25MB limit
+                audio_content = user_audio.read()
+                if len(audio_content) > 25 * 1024 * 1024:
+                    st.error("File size exceeds 25MB limit.")
+                    return None
+
+                # Call the Groq API to transcribe the audio
+                transcription = client.audio.transcriptions.create(
+                    file=(filename, audio_content),
+                    model="distil-whisper-large-v3-en",
+                    response_format="verbose_json",
+                )
+                
+                # Return the transcribed text
+                return transcription.text
 
             # Function to call Groq API
             def parse_llama_groq(user_input):
@@ -55,11 +87,17 @@ def tempchat():
 
             with col1:
                 if st.button("Generate Answer"):
-                    if not user_prompt:
-                        st.warning("Please enter both the prompt and your Groq API key.")
+
+                    if not user_audio:
+                        st.warning("Please enter both the audio and your Groq API key.")
                     else:
                         try:
                             # Call the function to get the response
+                            #Input the parsed text from user audio into the user_text
+                            user_prompt=parse_whisper_groq(user_audio)
+                            # Update session state with the current user prompt
+                            st.session_state['user_prompt'] = user_prompt
+
                             response = parse_llama_groq(user_prompt)
 
                             # Update the latest result
@@ -93,7 +131,7 @@ def tempchat():
                 st.markdown(f"<div style='background-color: #1a1a1a; padding: 15px; border-radius: 10px; color: white;'>{st.session_state['latest_result']}</div>", unsafe_allow_html=True)
 
         # Create a chat container
-        with st.expander("Chat History", expanded=False):
+        with st.expander("Chat History", expanded = False):
             if st.session_state['chat_history']:
                 for question, answer, timestamp in st.session_state['chat_history']:
                     with st.container():
@@ -103,59 +141,10 @@ def tempchat():
                         st.markdown(f"<div style='text-align: left; background-color: #000000; padding: 10px; border-radius: 5px;'>{answer}</div>", unsafe_allow_html=True)
             else:
                 st.write("No chat history yet. Ask something!")
-
-        if st.session_state['chat_history']:
-            if st.button("Download Chat History as PDF"):
-                # Create a BytesIO object to store the PDF
-                buffer = BytesIO()
-
-                # Create the PDF document
-                doc = SimpleDocTemplate(buffer, pagesize=letter)
-                styles = getSampleStyleSheet()
-                
-                # Create custom styles for prompt and answer
-                styles.add(ParagraphStyle(name='Prompt', alignment=0, fontName='Helvetica', fontSize=10))
-                styles.add(ParagraphStyle(name='Answer', alignment=2, fontName='Helvetica', fontSize=10))
-                styles.add(ParagraphStyle(name='Timestamp', alignment=1, fontName='Helvetica', fontSize=8, textColor=colors.gray))
-
-                # Create the story (content) for the PDF
-                story = []
-
-                for question, answer, timestamp in reversed(st.session_state['chat_history']):
-                    # Add timestamp
-                    story.append(Paragraph(timestamp, styles['Timestamp']))
-                    story.append(Spacer(1, 12))
-                    
-                    # Add prompt (left-aligned)
-                    story.append(Paragraph(f"Prompt: {question}", styles['Prompt']))
-                    story.append(Spacer(1, 12))
-                    
-                    # Add answer (right-aligned)
-                    story.append(Paragraph(f"Answer: {answer}", styles['Answer']))
-                    story.append(Spacer(1, 12))
-                    
-                    # Add a horizontal line
-                    story.append(HRFlowable(width="100%", thickness=1, color=colors.gray, spaceAfter=20))
-
-                # Build the PDF
-                doc.build(story)
-
-                # Move the buffer's cursor to the beginning of the stream
-                buffer.seek(0)
-
-                # Automatically trigger the download
-                st.download_button(
-                    label="Download Chat History as PDF",
-                    data=buffer.getvalue(),
-                    file_name="chat_history.pdf",
-                    mime="application/pdf",
-                    key="download_pdf"
-                )
     else:
-        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the API section...")
+        st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
         time.sleep(3)
-        homepage()
 
-# Call the tempchat function to run the app
-if __name__ == "__main__":
-    tempchat()
+except StreamlitAPIException:
+    print("Exception: StreamAPIException at Audio Chat Handled")
+    st.rerun()

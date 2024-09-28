@@ -3,10 +3,19 @@ from Scraper.scrape import scrape_website, split_dom_content, clean_body_content
 from Scraper.parse import parse_with_ollama, parse_llama_groq
 from datetime import date
 import time
-from home import homepage
+from themes import red_dark
+from layout import sidebar_layout
+from PIL import Image
+from streamlit.errors import StreamlitAPIException
 
-# GitHub dark theme style with white text color applied globally
-def aiscraper():
+
+try:
+    im = Image.open("assets/aihubshort.png")
+    st.set_page_config(page_title="AI WEB Scraper - Cluster Gen", page_icon=im, layout="wide")
+
+    red_dark()
+    sidebar_layout()
+
     if st.session_state.groq_api_key:
 
         st.title("SCRAPE IT")
@@ -47,5 +56,7 @@ def aiscraper():
     else:
         st.error("Oops🤭! Looks like you forgot to enter the Groq API. Redirecting you to the api section...")
         time.sleep(3)
-        homepage()
 
+except StreamlitAPIException:
+    print("Exception: StreamAPIException at AI Web Scraper Handled")
+    st.rerun()
