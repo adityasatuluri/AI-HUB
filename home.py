@@ -18,14 +18,14 @@ try:
     from themes import red_dark
 
     # Hide Streamlit UI elements
-    hide_st_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        </style>
-    """
-    st.markdown(hide_st_style, unsafe_allow_html=True)
+    # hide_st_style = """
+    #     <style>
+    #     #MainMenu {visibility: hidden;}
+    #     footer {visibility: hidden;}
+    #     header {visibility: hidden;}
+    #     </style>
+    # """
+    # st.markdown(hide_st_style, unsafe_allow_html=True)
 
     # Initialize the EncryptedCookieManager
     cookies = EncryptedCookieManager(
