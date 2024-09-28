@@ -46,6 +46,7 @@ try:
         st.session_state['hf_api_key'] = cookies.get('hf_api_key', "")
 
     st.title("Welcome to AI HUB")
+    st.write("Access a wide variety of AI application with your own API keys which are easily accessible.")
 
     # Example function to fetch API data using st.cache_data
     @st.cache_data(ttl=600)  # Cache data for 10 minutes
