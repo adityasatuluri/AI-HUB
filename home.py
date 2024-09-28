@@ -1,3 +1,5 @@
+# cd ../env/Scripts && activate && cd ../../aihub && streamlit run Home.py
+
 import os
 import streamlit as st
 from streamlit_cookies_manager import EncryptedCookieManager
