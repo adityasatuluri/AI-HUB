@@ -5,7 +5,6 @@ from PIL import Image, UnidentifiedImageError
 import time
 from datetime import datetime
 import os
-import time
 import pymongo
 from dotenv import load_dotenv
 from themes import red_dark
@@ -13,35 +12,53 @@ from layout import sidebar_layout
 from better_profanity import profanity
 from streamlit.errors import StreamlitAPIException
 
-
-
 # Load environment variables
 load_dotenv()
 
+# Initialize MongoDB client with exception handling
 MONGO_URI = os.getenv("MONGO_URI")
-client = pymongo.MongoClient(MONGO_URI)
-db = client['AIGENFLUX']
-collection = db.Prompts
+db = None
+collection = None
+db_available = False
 
+# Only attempt MongoDB connection once and store status
+if 'mongo_checked' not in st.session_state:
+    st.session_state.mongo_checked = True
+    try:
+        client = pymongo.MongoClient(MONGO_URI)
+        db = client['AIGENFLUX']
+        collection = db.Prompts
+        db_available = True
+        print("Successfully connected to MongoDB")
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+        st.warning("Database connection unavailable. Continuing without database functionality.")
 
-try:
-    im = Image.open("assets/aihubshort.png")
-    st.set_page_config(page_title="Audio Chat - Cluster Gen",  page_icon=im, layout="wide")
+# Main app logic
+def main():
+    try:
+        im = Image.open("assets/aihubshort.png")
+        st.set_page_config(page_title="Audio Chat - Cluster Gen", page_icon=im, layout="wide")
+    except Exception as e:
+        print(f"Failed to set page config: {e}")
+        st.error("Failed to load page configuration. Continuing with default settings.")
 
     red_dark()
     sidebar_layout()
 
-
     def insert_prompt(prompt):
-        try:
-            document = {
-                "prompt": prompt,
-                "created_at": db.command("serverStatus")["localTime"]
-            }
-            collection.insert_one(document)
-            print(f"Prompt '{prompt}' has been inserted into the database.")
-        except Exception as e:
-            print(f"An error occurred while inserting the prompt: {e}")
+        if db_available:
+            try:
+                document = {
+                    "prompt": prompt,
+                    "created_at": db.command("serverStatus")["localTime"]
+                }
+                collection.insert_one(document)
+                print(f"Prompt '{prompt}' has been inserted into the database.")
+            except Exception as e:
+                print(f"An error occurred while inserting the prompt: {e}")
+        else:
+            print("Database not available. Prompt not saved.")
 
     def profane(prompt_str):
         censored_prompt = profanity.censor(prompt_str)
@@ -50,7 +67,7 @@ try:
     if 'response' not in st.session_state:
         st.session_state['response'] = ""
 
-    if st.session_state.hf_api_key:
+    if 'hf_api_key' in st.session_state and st.session_state.hf_api_key:
         # Hide Streamlit menu
         hide_st_style = """
             <style>
@@ -123,59 +140,59 @@ try:
                         print(response)
                         return response
 
-                    st.session_state.response = response = query({
-                        "inputs": input_prompt2,
-                        "steps": steps,
-                        "seed": seed,
-                        "guidance_scale": guidance_scale,
-                        "negative_prompt": "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face...",
-                        "num_inference_steps": steps,
-                        "safety_checker": "yes",
-                        "enhance_prompt": "no",
-                        "upscale": "yes"
-                    })
+                    try:
+                        st.session_state.response = response = query({
+                            "inputs": input_prompt2,
+                            "steps": steps,
+                            "seed": seed,
+                            "guidance_scale": guidance_scale,
+                            "negative_prompt": "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face...",
+                            "num_inference_steps": steps,
+                            "safety_checker": "yes",
+                            "enhance_prompt": "no",
+                            "upscale": "yes"
+                        })
 
-                    if st.session_state.response.ok and 'image' in st.session_state.response.headers.get('Content-Type', ''):
-                        try:
-                            image_bytes = st.session_state.response.content
-                            image = Image.open(io.BytesIO(image_bytes))
-                            st.image(image, caption="Generated Image", use_column_width=True)
+                        if st.session_state.response.ok and 'image' in st.session_state.response.headers.get('Content-Type', ''):
+                            try:
+                                image_bytes = st.session_state.response.content
+                                image = Image.open(io.BytesIO(image_bytes))
+                                st.image(image, caption="Generated Image", use_column_width=True)
 
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            safe_prompt = ''.join(e for e in input_prompt[:20] if e.isalnum())
-                            filename = f"{safe_prompt}_FLUX_{timestamp}.png"
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                safe_prompt = ''.join(e for e in input_prompt[:20] if e.isalnum())
+                                filename = f"{safe_prompt}_FLUX_{timestamp}.png"
 
-                            img_buffer = io.BytesIO()
-                            image.save(img_buffer, format="PNG")
+                                img_buffer = io.BytesIO()
+                                image.save(img_buffer, format="PNG")
 
-                            st.download_button(
-                                label="Download Image",
-                                data=img_buffer,
-                                file_name=filename,
-                                mime="image/png"
-                            )
+                                st.download_button(
+                                    label="Download Image",
+                                    data=img_buffer,
+                                    file_name=filename,
+                                    mime="image/png"
+                                )
 
-                            st.write(f"Time taken: {round((time.time() - t)/60, 3)} minutes.")
-                        except UnidentifiedImageError:
-                            st.error("The API response is not a valid image.")
-                    else:
-                        st.error("The API response does not contain image data or failed.")
+                                st.write(f"Time taken: {round((time.time() - t)/60, 3)} minutes.")
+                            except UnidentifiedImageError:
+                                st.error("The API response is not a valid image.")
+                        else:
+                            st.error("The API response does not contain image data or failed.")
+                    except Exception as e:
+                        st.error(f"Error during image generation: {e}")
                 else:
                     st.warning("Please enter a prompt.")
-
-        # Footer Section
-        # st.markdown("""
-        #     <footer style="text-align: center; margin-top: 50px; padding: 20px; color: #fff; border-radius: 10px;">
-        #         <h3 style="font-size: 18px;">Developed by <a href="https://bento.me/aditya-s" style="color: #4CAF50; text-decoration: none;">Aditya Satuluri</a></h3>
-        #         <h3 style="font-size: 18px;">Check out my <a href="https://github.com/adityasatuluri" style="color: #4CAF50; text-decoration: none;">GitHub</a> and <a href="https://www.linkedin.com/in/aditya-satuluri-a250a31a0/" style="color: #4CAF50; text-decoration: none;">LinkedIn</a></h3>
-        #         <h3 style="font-size: 14px;">For more information refer <a href="https://github.com/adityasatuluri/AI-image-generator-FLUX" style="color: #fc2403; text-decoration: none;">Documentation</a></h3>
-        #     </footer>
-        # """, unsafe_allow_html=True)
-
     else:
         st.error("Oops🤭! Looks like you forgot to enter the flux API. Go to the Home...")
         time.sleep(3)
 
-except StreamlitAPIException:
-    print("Exception: StreamAPIException at Image Generation Handled")
-    st.rerun()
+if __name__ == "__main__":
+    try:
+        main()
+    except StreamlitAPIException as e:
+        print(f"StreamlitAPIException handled: {e}")
+        # Instead of rerunning, just display the error and continue
+        st.error("An error occurred in the application. Please try refreshing the page.")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        st.error("An unexpected error occurred. Please try again later.")

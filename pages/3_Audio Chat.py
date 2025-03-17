@@ -72,7 +72,7 @@ try:
                 client = Groq(api_key=st.session_state.groq_api_key)
                 prompt = user_input
                 completion = client.chat.completions.create(
-                    model="llama-3.1-70b-versatile",
+                    model="llama3-8b-8192",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=1,
                     max_tokens=6900,
