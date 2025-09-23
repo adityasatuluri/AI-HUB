@@ -17,11 +17,6 @@ ClusterGen is a powerful and modular GenAI application designed to simplify crea
 - Record and transcribe audio directly in-browser.
 - Multi-modal support for text-to-speech and speech-to-text.
 
-### 🔎 Smart Document Extraction
-- OCR with PaddleOCR and fallback to Tesseract.
-- NER-based redaction system using fine-tuned spaCy models.
-- Output formats: raw text, redacted text, redacted image.
-
 ### 🧪 Temporary AI Playground
 - Run temporary conversations with any OpenAI or Groq-compatible LLM.
 - Fast inference via Groq's API integration.
